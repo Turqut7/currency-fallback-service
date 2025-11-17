@@ -1,0 +1,17 @@
+spring:
+  application:
+    name: currency-fallback-service
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+server:
+  port: 8080
+
+external:
+  rates:
+    base-url: https://api.exchangerate.host
+    latest-path: /latest
+    base-currency: USD
