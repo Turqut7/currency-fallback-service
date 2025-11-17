@@ -12,6 +12,6 @@ server:
 
 external:
   rates:
-    base-url: https://api.exchangerate.host
-    latest-path: /latest
+    base-url: https://open.er-api.com
+    latest-path: /v6/latest/
     base-currency: USD
