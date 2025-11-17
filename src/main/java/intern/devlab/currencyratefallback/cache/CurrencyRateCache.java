@@ -16,16 +16,27 @@ public class CurrencyRateCache {
     }
 
     public void saveRate(String base, String target, BigDecimal rate) {
-        String key = base + ":" + target;
-        redisTemplate.opsForValue().set(key, rate, 1, TimeUnit.HOURS);
+        String key = base + ":" + target;  // Məs: USD:AZN
+        try {
+            redisTemplate
+                    .opsForValue()
+                    .set(key, rate, 1, TimeUnit.HOURS);
+        } catch (Exception e) {
+        }
     }
 
     public BigDecimal getRate(String base, String target) {
         String key = base + ":" + target;
-        Object value = redisTemplate.opsForValue().get(key);
+        try {
+            Object value = redisTemplate
+                    .opsForValue()
+                    .get(key);
 
-        if (value instanceof BigDecimal) {
-            return (BigDecimal) value;
+            if (value instanceof BigDecimal) {
+                return (BigDecimal) value;
+            }
+        } catch (Exception e) {
+            return null;
         }
         return null;
     }
