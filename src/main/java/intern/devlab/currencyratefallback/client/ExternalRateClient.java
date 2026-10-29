@@ -3,6 +3,9 @@ package intern.devlab.currencyratefallback.client;
 import intern.devlab.currencyratefallback.model.ExternalRatesResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.math.BigDecimal;
@@ -31,6 +34,11 @@ public class ExternalRateClient {
         return baseUrl + latestPath + baseCurrency;
     }
 
+    @Retryable(
+            retryFor = RestClientException.class,
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 1000)
+    )
     public Optional<BigDecimal> getRateFor(String targetCurrency) {
         String uppercaseTarget = targetCurrency.toUpperCase(Locale.ROOT);
         String url = buildLatestUrl();
@@ -49,6 +57,11 @@ public class ExternalRateClient {
         return Optional.ofNullable(rate);
     }
 
+    @Retryable(
+            retryFor = RestClientException.class,
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 1000)
+    )
     public String getRawLatestRatesJson() {
         String url = buildLatestUrl();
         return restTemplate.getForObject(url, String.class);
