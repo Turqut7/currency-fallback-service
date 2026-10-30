@@ -32,10 +32,14 @@ public class CurrencyRateCache {
         try {
             redisTemplate
                     .opsForValue()
-                    .set(key, rate, 1, TimeUnit.HOURS);
+                    .set(key, rate, 48, TimeUnit.HOURS);
 
         } catch (Exception e) {
-            log.warn("Failed to save currency rate to Redis: {}", key, e);
+            log.warn(
+                    "Failed to save currency rate to Redis: {}",
+                    key,
+                    e
+            );
         }
     }
 

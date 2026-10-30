@@ -15,3 +15,8 @@ external:
     base-url: https://open.er-api.com
     latest-path: /v6/latest/
     base-currency: USD
+
+currency:
+  rates:
+    refresh-interval: 3600000
+    refresh-initial-delay: 0

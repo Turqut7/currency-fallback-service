@@ -6,10 +6,13 @@ import org.springframework.retry.annotation.EnableRetry;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.serializer.StringRedisSerializer;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.web.client.RestTemplate;
 
 @Configuration
 @EnableRetry
+@EnableScheduling
 public class RedisConfig {
 
     @Bean
@@ -23,9 +26,18 @@ public class RedisConfig {
     }
 
     @Bean
-    public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory redisConnectionFactory) {
-        RedisTemplate<String, Object> template = new RedisTemplate<>();
+    public RedisTemplate<String, Object> redisTemplate(
+            RedisConnectionFactory redisConnectionFactory
+    ) {
+        RedisTemplate<String, Object> template =
+                new RedisTemplate<>();
+
         template.setConnectionFactory(redisConnectionFactory);
+
+        // Redis keys will be stored as readable strings.
+        template.setKeySerializer(new StringRedisSerializer());
+        template.setHashKeySerializer(new StringRedisSerializer());
+
         return template;
     }
 }

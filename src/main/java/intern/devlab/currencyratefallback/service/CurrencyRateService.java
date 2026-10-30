@@ -2,6 +2,7 @@ package intern.devlab.currencyratefallback.service;
 
 import intern.devlab.currencyratefallback.cache.CurrencyRateCache;
 import intern.devlab.currencyratefallback.client.ExternalRateClient;
+import intern.devlab.currencyratefallback.model.ExternalRatesResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -10,6 +11,7 @@ import org.springframework.web.client.RestClientException;
 import java.math.BigDecimal;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.Map;
 
 @Service
 public class CurrencyRateService {
@@ -70,5 +72,49 @@ public class CurrencyRateService {
 
     public String getRawRatesJson() {
         return externalRateClient.getRawLatestRatesJson();
+    }
+
+    public void refreshRates() {
+        log.info("Starting currency rates refresh");
+
+        try {
+            ExternalRatesResponse response =
+                    externalRateClient.getLatestRates();
+
+            Map<String, BigDecimal> rates = response.getRates();
+
+            if (rates == null || rates.isEmpty()) {
+                log.warn("Currency rates response is empty");
+                return;
+            }
+
+            for (Map.Entry<String, BigDecimal> entry
+                    : rates.entrySet()) {
+
+                String targetCurrency = entry.getKey();
+                BigDecimal rate = entry.getValue();
+
+                if (rate == null) {
+                    continue;
+                }
+
+                cache.saveRate(
+                        "USD",
+                        targetCurrency.toUpperCase(Locale.ROOT),
+                        rate
+                );
+            }
+
+            log.info(
+                    "Currency rates refresh completed. Rates processed: {}",
+                    rates.size()
+            );
+
+        } catch (RestClientException e) {
+            log.error(
+                    "Currency rates refresh failed. Existing cached rates will be retained.",
+                    e
+            );
+        }
     }
 }
