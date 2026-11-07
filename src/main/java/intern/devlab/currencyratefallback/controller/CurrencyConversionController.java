@@ -1,5 +1,6 @@
 package intern.devlab.currencyratefallback.controller;
 
+import intern.devlab.currencyratefallback.model.ConversionResponse;
 import intern.devlab.currencyratefallback.service.CurrencyRateService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -34,5 +35,13 @@ public class CurrencyConversionController {
     @GetMapping("/rate/raw")
     public String getRawRates() {
         return currencyRateService.getRawRatesJson();
+    }
+
+    @GetMapping("/convert")
+    public ConversionResponse convert(
+            @RequestParam BigDecimal amount,
+            @RequestParam String to
+    ) {
+        return currencyRateService.convert(amount, to);
     }
 }

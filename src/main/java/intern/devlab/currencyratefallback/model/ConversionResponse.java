@@ -1,4 +1,12 @@
 package intern.devlab.currencyratefallback.model;
 
-public class ConversionResponse {
+import java.math.BigDecimal;
+
+public record ConversionResponse(
+        String from,
+        String to,
+        BigDecimal amount,
+        BigDecimal rate,
+        BigDecimal convertedAmount
+) {
 }

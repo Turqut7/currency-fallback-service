@@ -2,13 +2,17 @@ package intern.devlab.currencyratefallback.service;
 
 import intern.devlab.currencyratefallback.cache.CurrencyRateCache;
 import intern.devlab.currencyratefallback.client.ExternalRateClient;
+import intern.devlab.currencyratefallback.model.ConversionResponse;
 import intern.devlab.currencyratefallback.model.ExternalRatesResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.Map;
@@ -116,5 +120,59 @@ public class CurrencyRateService {
                     e
             );
         }
+    }
+
+    public ConversionResponse convert(
+            BigDecimal amount,
+            String targetCurrency
+    ) {
+        // 1. Validate amount.
+        if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Amount must be greater than zero"
+            );
+        }
+
+        // 2. Validate target currency.
+        if (targetCurrency == null
+                || !targetCurrency.matches("(?i)[A-Z]{3}")) {
+
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Target currency must be a valid 3-letter code"
+            );
+        }
+
+        String normalizedTarget =
+                targetCurrency.toUpperCase(Locale.ROOT);
+
+        // 3. Get exchange rate.
+        Optional<BigDecimal> rateOptional =
+                getUsdTo(normalizedTarget);
+
+        if (rateOptional.isEmpty()) {
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND,
+                    "Exchange rate not available for currency: "
+                            + normalizedTarget
+            );
+        }
+
+        BigDecimal rate = rateOptional.get();
+
+        // 4. Calculate converted amount.
+        BigDecimal convertedAmount =
+                amount.multiply(rate)
+                        .setScale(2, RoundingMode.HALF_UP);
+
+        // 5. Return conversion response.
+        return new ConversionResponse(
+                "USD",
+                normalizedTarget,
+                amount,
+                rate,
+                convertedAmount
+        );
     }
 }
